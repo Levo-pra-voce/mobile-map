@@ -3,11 +3,14 @@ package com.levopravoce.map
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -21,6 +24,8 @@ import com.levopravoce.map.ui.theme.MapTheme
 import kotlinx.coroutines.launch
 import org.maplibre.android.MapLibre
 import org.maplibre.android.WellKnownTileServer
+import org.maplibre.android.annotations.IconFactory
+import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.Style
@@ -57,6 +62,8 @@ class MainActivity : ComponentActivity() {
                     .use { it.readText() }
                 val context = this.baseContext
 
+                val selectedPoint = remember { mutableStateListOf<LatLng>() }
+
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { mapView },
@@ -78,6 +85,36 @@ class MainActivity : ComponentActivity() {
                                         )
                                     ).zoom(15.0).build()
                                 }
+                            }
+
+                            map.setMinZoomPreference(10.0)
+
+//                            map.setMaxZoomPreference(18.0)
+
+                            map.addOnMapClickListener { point ->
+                                selectedPoint.add(point)
+
+                                if(selectedPoint.size > 2) {
+                                    selectedPoint.removeFirst()
+                                }
+
+                                map.addMarker(
+                                    MarkerOptions()
+                                        .position(point)
+                                        .title("Hello world")
+                                        .icon(IconFactory.getInstance(context).fromResource(R.drawable.map_point))
+                                )
+
+                                true
+                            }
+
+                            map.setOnMarkerClickListener { marker ->
+                                Toast.makeText(
+                                    context,
+                                    "Marker clicked: ${marker.title}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                true
                             }
 //                            if (googleApiClient.isConnected) {
 //                                registerForActivityResult(
