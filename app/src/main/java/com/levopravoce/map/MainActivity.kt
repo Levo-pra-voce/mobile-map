@@ -6,20 +6,17 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.Marker
 import com.levopravoce.map.ui.theme.MapTheme
 import kotlinx.coroutines.launch
 import org.maplibre.android.MapLibre
@@ -62,8 +59,6 @@ class MainActivity : ComponentActivity() {
                     .use { it.readText() }
                 val context = this.baseContext
 
-                val selectedPoint = remember { mutableStateListOf<LatLng>() }
-
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { mapView },
@@ -88,23 +83,17 @@ class MainActivity : ComponentActivity() {
                             }
 
                             map.setMinZoomPreference(10.0)
-
-//                            map.setMaxZoomPreference(18.0)
-
                             map.addOnMapClickListener { point ->
-                                selectedPoint.add(point)
-
-                                if(selectedPoint.size > 2) {
-                                    selectedPoint.removeFirst()
-                                }
-
-                                map.addMarker(
+                                val markerOption =
                                     MarkerOptions()
                                         .position(point)
                                         .title("Hello world")
-                                        .icon(IconFactory.getInstance(context).fromResource(R.drawable.map_point))
-                                )
+                                        .icon(IconFactory.getInstance(context).fromResource(R.drawable.map_point));
+                                map.addMarker(markerOption)
 
+                                if(map.markers.size > 2) {
+                                    map.markers.first().remove()
+                                }
                                 true
                             }
 
